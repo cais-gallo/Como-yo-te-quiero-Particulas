@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Mi Yaz</title>
+    <meta name="description" content="Yaz">
+    <meta name="author" content="Carlos">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            font-family: 'Quicksand', sans-serif;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        canvas {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* === MODIFICA ESTO PARA AJUSTAR POSICIÓN DEL CUADRO === */
+        /* bottom: controla qué tan arriba/abajo está el cuadro */
+        /* Valores más altos = más arriba, valores más bajos = más abajo */
+        .message-container {
+            position: absolute;
+            bottom: 100px; /* AJUSTA ESTE VALOR: 100px para celular (más abajo) */
+            left: 0;
+            width: 100%;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+            animation: slideUp 1.5s ease forwards;
+            animation-delay: 0.5s;
+            opacity: 0;
+        }
+
+        /* === TAMAÑO DEL CUADRO DE MENSAJE === */
+        .main-content {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px; /* AJUSTA: menos padding = cuadro más pequeño */
+            max-width: 90%; /* AJUSTA: porcentaje del ancho */
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem; /* AJUSTA: tamaño del título */
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 20, 147, 0.7);
+            color: #ffd1dc;
+            text-align: center;
+        }
+
+        .message {
+            font-size: 1rem; /* AJUSTA: tamaño del texto */
+            line-height: 1.4;
+            margin: 15px 0;
+            color: #f0f0f0;
+            text-align: center;
+        }
+
+        .highlight {
+            color: #ffd1dc;
+            font-weight: 600;
+        }
+
+        .intimacy-message {
+            background: rgba(255, 182, 193, 0.15);
+            border-radius: 15px;
+            padding: 12px; /* AJUSTA: padding interno */
+            margin: 12px 0;
+            border-left: 3px solid #ff9ebb;
+            font-style: italic;
+            font-size: 0.95rem; /* AJUSTA: tamaño de texto */
+        }
+
+        .signature {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.5rem; /* AJUSTA: tamaño firma */
+            color: #ff9ebb;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* === NOMBRE DENTRO DEL CORAZÓN === */
+        /* top: controla posición vertical (50% = centro) */
+        .name-inside-heart {
+            position: fixed;
+            top: 40%; /* AJUSTA ESTE VALOR: 40% más arriba que el centro */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem; /* AJUSTA: tamaño del nombre */
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.8);
+            pointer-events: none;
+            animation: glow 2s infinite alternate;
+            opacity: 0.8;
+        }
+
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-heart {
+            position: absolute;
+            color: rgba(255, 107, 157, 0.6);
+            font-size: 1.5rem;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        .flower {
+            position: fixed;
+            font-size: 1.8rem; /* AJUSTA: tamaño flores */
+            color: #ff6b9d;
+            opacity: 0.7;
+            animation: float 8s ease-in-out infinite;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% { text-shadow: 0 0 15px rgba(255, 20, 147, 0.7); }
+            100% { text-shadow: 0 0 25px rgba(255, 20, 147, 0.9), 0 0 35px rgba(255, 20, 147, 0.6); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.6; text-shadow: 0 0 10px rgba(255, 107, 157, 0.6); }
+            100% { opacity: 0.9; text-shadow: 0 0 25px rgba(255, 107, 157, 1); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === AJUSTES ESPECÍFICOS PARA CELULAR === */
+        @media (max-width: 768px) {
+            h1 { 
+                font-size: 2rem; /* Título más pequeño en móvil */
+            }
+            
+            .message { 
+                font-size: 0.9rem; /* Texto más pequeño */
+            }
+            
+            /* === POSICIÓN DEL NOMBRE EN CORAZÓN (MÓVIL) === */
+            .name-inside-heart { 
+                top: 35%; /* AJUSTA: posición vertical en móvil */
+                font-size: 2.8rem; /* Tamaño en móvil */
+            }
+            
+            .main-content { 
+                padding: 15px; /* Menos padding en móvil */
+                max-width: 95%; /* Más ancho en móvil */
+            }
+            
+            .signature { 
+                font-size: 1.3rem; /* Firma más pequeña */
+            }
+            
+            /* === POSICIÓN DEL CUADRO (MÓVIL) === */
+            .message-container { 
+                bottom: 80px; /* AJUSTA: posición en móvil (80px más abajo) */
+                padding: 0 15px;
+            }
+            
+            .intimacy-message {
+                padding: 10px;
+                font-size: 0.85rem;
+                margin: 10px 0;
+            }
+        }
+
+        /* Para pantallas muy pequeñas (iPhone SE, etc.) */
+        @media (max-width: 375px) {
+            .message-container { 
+                bottom: 60px; /* AÚN MÁS ABAJO para pantallas pequeñas */
+            }
+            
+            .name-inside-heart { 
+                top: 30%; /* NOMBRE MÁS ARRIBA */
+                font-size: 2.5rem;
+            }
+            
+            h1 { font-size: 1.8rem; }
+            .message { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pinkboard"></canvas>
+    
+    <div class="name-inside-heart" id="nameInsideHeart">Yaz</div>
+    
+    <div class="floating-hearts" id="floatingHearts"></div>
+    
+    <div class="message-container">
+        <div class="main-content">
+            <h1>Mi Amor....</h1>
+            <div class="message">
+                Mi Yaz hermosa...<br>
+                El inicio de este año... fue especial por <span class="highlight">estar contigo</span>.<br>
+                Dormir juntos, abrazarte, sentirte cerca...<br>
+                Fue perfecto.
+            </div>
+            
+            <div class="intimacy-message">
+                Esos momentos de estar contigo son los que guardo en mi corazón.<br>
+                Verte dormir a mi lado, despertar contigo...<br>
+                Eso es lo que hace que todo valga la pena.
+            </div>
+            
+            <div class="message">
+                Las flores que te di son solo un pequeño reflejo<br>
+                de todo lo bonito que siento por ti<br>
+                <span class="highlight">por que tú... Eres mi flor más preciada</span>.
+            </div>
+            
+            <div class="signature">
+                Con todo mi amor... Tu chillón...<br>
+               
+            </div>
+        </div>
+    </div>
+
+    <audio id="backgroundMusic" loop>
+        <source src="como.mp3" type="audio/mpeg">
+        A Caray.. Algo salio mal.... chaleee....
+    </audio>
+
+    <script>
+        // Configuración de partículas
+        var settings = {
+            particles: {
+                length: 8000, // REDUCIDO para mejor rendimiento en móvil
+                duration: 4,
+                velocity: 70, // REDUCIDO velocidad
+                effect: -1.3,
+                size: 6, // REDUCIDO tamaño partículas
+            },
+        };
+
+        // Variables globales
+        var currentHeartColor = '#ff6b9d';
+        var heartAnimationId = null;
+        var musicStarted = false;
+        var nameIndex = 0;
+        var colorIndex = 0;
+
+        // Polyfill para requestAnimationFrame
+        (function(){
+            var lastTime = 0;
+            var vendors = ['ms', 'moz', 'webkit', 'o'];
+            for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+                window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+                window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+            }
+            
+            if (!window.requestAnimationFrame)
+                window.requestAnimationFrame = function(callback, element) {
+                    var currTime = new Date().getTime();
+                    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+                    var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+                    lastTime = currTime + timeToCall;
+                    return id;
+                };
+            
+            if (!window.cancelAnimationFrame)
+                window.cancelAnimationFrame = function(id) {
+                    clearTimeout(id);
+                };
+        }());
+
+        // Clases para partículas
+        var Point = (function() {
+            function Point(x, y) {
+                this.x = (typeof x !== 'undefined') ? x : 0;
+                this.y = (typeof y !== 'undefined') ? y : 0;
+            }
+            Point.prototype.clone = function() {
+                return new Point(this.x, this.y);
+            };
+            Point.prototype.length = function(length) {
+                if (typeof length == 'undefined')
+                    return Math.sqrt(this.x * this.x + this.y * this.y);
+                this.normalize();
+                this.x *= length;
+                this.y *= length;
+                return this;
+            };
+            Point.prototype.normalize = function() {
+                var length = this.length();
+                this.x /= length;
+                this.y /= length;
+                return this;
+            };
+            return Point;
+        })();
+
+        var Particle = (function() {
+            function Particle() {
+                this.position = new Point();
+                this.velocity = new Point();
+                this.acceleration = new Point();
+                this.age = 0;
+            }
+            Particle.prototype.initialize = function(x, y, dx, dy) {
+                this.position.x = x;
+                this.position.y = y;
+                this.velocity.x = dx;
+                this.velocity.y = dy;
+                this.acceleration.x = dx * settings.particles.effect;
+                this.acceleration.y = dy * settings.particles.effect;
+                this.age = 0;
+            };
+            Particle.prototype.update = function(deltaTime) {
+                this.position.x += this.velocity.x * deltaTime;
+                this.position.y += this.velocity.y * deltaTime;
+                this.velocity.x += this.acceleration.x * deltaTime;
+                this.velocity.y += this.acceleration.y * deltaTime;
+                this.age += deltaTime;
+            };
+            Particle.prototype.draw = function(context, image) {
+                function ease(t) {
+                    return (--t) * t * t + 1;
+                }
+                var size = image.width * ease(this.age / settings.particles.duration);
+                context.globalAlpha = 1 - this.age / settings.particles.duration;
+                context.drawImage(image, this.position.x - size / 2, this.position.y - size / 2, size, size);
+            };
+            return Particle;
+        })();
+
+        var ParticlePool = (function() {
+            var particles,
+                firstActive = 0,
+                firstFree = 0,
+                duration = settings.particles.duration;
+            
+            function ParticlePool(length) {
+                particles = new Array(length);
+                for (var i = 0; i < particles.length; i++)
+                    particles[i] = new Particle();
+            }
+            
+            ParticlePool.prototype.add = function(x, y, dx, dy) {
+                particles[firstFree].initialize(x, y, dx, dy);
+                firstFree++;
+                if (firstFree == particles.length) firstFree = 0;
+                if (firstActive == firstFree) firstActive++;
+                if (firstActive == particles.length) firstActive = 0;
+            };
+            
+            ParticlePool.prototype.update = function(deltaTime) {
+                var i;
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].update(deltaTime);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+                
+                while (particles[firstActive].age >= duration && firstActive != firstFree) {
+                    firstActive++;
+                    if (firstActive == particles.length) firstActive = 0;
+                }
+            };
+            
+            ParticlePool.prototype.draw = function(context, image) {
+                var i;
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].draw(context, image);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+            };
+            return ParticlePool;
+        })();
+
+        // Crear imagen de partícula
+        function createParticleImage(color) {
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = settings.particles.size;
+            canvas.height = settings.particles.size;
+            
+            function pointOnHeart(t) {
+                return new Point(
+                    160 * Math.pow(Math.sin(t), 3),
+                    130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                );
+            }
+            
+            function to(t) {
+                var point = pointOnHeart(t);
+                point.x = settings.particles.size / 2 + point.x * settings.particles.size / 350;
+                point.y = settings.particles.size / 2 - point.y * settings.particles.size / 350;
+                return point;
+            }
+            
+            context.beginPath();
+            var t = -Math.PI;
+            var point = to(t);
+            context.moveTo(point.x, point.y);
+            while (t < Math.PI) {
+                t += 0.01;
+                point = to(t);
+                context.lineTo(point.x, point.y);
+            }
+            context.closePath();
+            
+            context.fillStyle = color;
+            context.fill();
+            
+            var image = new Image();
+            image.src = canvas.toDataURL();
+            return image;
+        }
+
+        // Inicializar corazón
+        function initHeartEffect(color) {
+            var canvas = document.getElementById('pinkboard');
+            var context = canvas.getContext('2d');
+            var particles = new ParticlePool(settings.particles.length);
+            var particleRate = settings.particles.length / settings.particles.duration;
+            var time;
+            var image = createParticleImage(color);
+            
+            function pointOnHeart(t) {
+                return new Point(
+                    160 * Math.pow(Math.sin(t), 3),
+                    130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                );
+            }
+            
+            function render() {
+                heartAnimationId = requestAnimationFrame(render);
+                
+                var newTime = new Date().getTime() / 1000;
+                var deltaTime = newTime - (time || newTime);
+                time = newTime;
+                
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                
+                var amount = particleRate * deltaTime;
+                for (var i = 0; i < amount; i++) {
+                    var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                    var dir = pos.clone().length(settings.particles.velocity);
+                    particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+                }
+                
+                particles.update(deltaTime);
+                particles.draw(context, image);
+            }
+            
+            function onResize() {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+            
+            window.onresize = onResize;
+            
+            if (heartAnimationId) {
+                cancelAnimationFrame(heartAnimationId);
+            }
+            
+            setTimeout(function() {
+                onResize();
+                render();
+            }, 10);
+        }
+
+        // Crear flores flotantes (menos flores para móvil)
+        function createFloatingFlowers() {
+            const flowerCount = 5; // REDUCIDO para móvil
+            
+            for (let i = 0; i < flowerCount; i++) {
+                setTimeout(() => {
+                    const flower = document.createElement('div');
+                    flower.className = 'flower';
+                    flower.innerHTML = '🌸';
+                    
+                    flower.style.left = Math.random() * 100 + 'vw';
+                    flower.style.top = Math.random() * 100 + 'vh';
+                    
+                    const duration = 8 + Math.random() * 8;
+                    const delay = Math.random() * 6;
+                    flower.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                    
+                    flower.style.fontSize = (1.2 + Math.random() * 1.0) + 'rem';
+                    flower.style.opacity = 0.5 + Math.random() * 0.3;
+                    
+                    document.body.appendChild(flower);
+                }, i * 300);
+            }
+        }
+
+        // Cambiar nombre automáticamente
+        function changeName() {
+            const nameElement = document.getElementById('nameInsideHeart');
+            const names = ['Yaz', 'Pandita', 'Mi Amor', 'Mi Vida', 'Te Amo'];
+            
+            nameIndex = (nameIndex + 1) % names.length;
+            nameElement.textContent = names[nameIndex];
+            
+            // Efecto de transición
+            nameElement.style.opacity = 0;
+            setTimeout(() => {
+                nameElement.style.opacity = 0.9;
+                nameElement.style.transition = 'opacity 0.5s ease';
+            }, 300);
+        }
+
+        // Cambiar color automáticamente
+        function changeColor() {
+            const colors = [
+                '#ff6b9d', // Rosa
+                '#e91e63', // Rosa oscuro
+                '#9c27b0', // Púrpura
+                '#673ab7', // Violeta
+                '#3f51b5', // Azul índigo
+                '#2196f3', // Azul
+                '#00bcd4', // Cian
+                '#4caf50', // Verde
+                '#ff9800', // Naranja
+                '#ff5722'  // Rojo anaranjado
+            ];
+            
+            colorIndex = (colorIndex + 1) % colors.length;
+            currentHeartColor = colors[colorIndex];
+            
+            // Reiniciar efecto con nuevo color
+            if (heartAnimationId) {
+                cancelAnimationFrame(heartAnimationId);
+            }
+            initHeartEffect(currentHeartColor);
+        }
+
+        // Reproducir música
+        function startMusic() {
+            if (!musicStarted) {
+                const music = document.getElementById('backgroundMusic');
+                music.volume = 0.7; // Volumen moderado para móvil
+                music.play().then(() => {
+                    musicStarted = true;
+                    console.log("Música iniciada");
+                }).catch(error => {
+                    console.log("Error al iniciar música:", error);
+                    // Intentar de nuevo en 1 segundo
+                    setTimeout(startMusic, 1000);
+                });
+            }
+        }
+
+        // Funcionalidades al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Iniciar efectos visuales
+            initHeartEffect(currentHeartColor);
+            createFloatingFlowers();
+            
+            // Crear corazones flotantes (menos para móvil)
+            function createFloatingHearts() {
+                const container = document.getElementById('floatingHearts');
+                const heartCount = 15; // REDUCIDO para móvil
+                
+                for (let i = 0; i < heartCount; i++) {
+                    setTimeout(() => {
+                        const heart = document.createElement('div');
+                        heart.className = 'floating-heart';
+                        heart.innerHTML = '❤️';
+                        
+                        heart.style.left = Math.random() * 100 + 'vw';
+                        heart.style.top = Math.random() * 100 + 'vh';
+                        
+                        const duration = 6 + Math.random() * 6;
+                        const delay = Math.random() * 5;
+                        heart.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                        
+                        heart.style.fontSize = (0.6 + Math.random() * 1.0) + 'rem';
+                        heart.style.opacity = 0.3 + Math.random() * 0.3;
+                        
+                        container.appendChild(heart);
+                    }, i * 200);
+                }
+            }
+            
+            createFloatingHearts();
+            
+            // Iniciar música al hacer clic en cualquier parte
+            document.body.addEventListener('click', function() {
+                startMusic();
+            });
+            
+            // También intentar iniciar música automáticamente después de 1 segundo
+            setTimeout(startMusic, 1000);
+            
+            // Cambiar nombre cada 5 segundos
+            setInterval(changeName, 5000);
+            
+            // Cambiar color cada 10 segundos
+            setInterval(changeColor, 10000);
+            
+            // Efecto especial para el nombre
+            const nameElement = document.getElementById('nameInsideHeart');
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    nameElement.style.textShadow = `0 0 30px ${currentHeartColor}`;
+                    setTimeout(() => {
+                        nameElement.style.textShadow = '0 0 20px rgba(255, 107, 157, 0.8)';
+                    }, 1000);
+                }
+            }, 3000);
+            
+            // Optimizar para móvil: menos efectos si es móvil
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                console.log("Dispositivo móvil detectado - optimizando efectos");
+                // Reducir aún más efectos para mejor rendimiento
+                settings.particles.length = 5000;
+            }
+        });
+    </script>
+</body>
+</html>
